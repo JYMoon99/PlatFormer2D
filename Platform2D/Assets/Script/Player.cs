@@ -4,9 +4,8 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    [SerializeField] float speed;
-    [SerializeField] float jumpPower;
     [SerializeField] float maxSpeed;
+    [SerializeField] float jumpPower;
     [SerializeField] float health;
 
 
@@ -28,11 +27,44 @@ public class Player : MonoBehaviour
     {
         Run();
 
+        
+        
+        Debug.DrawRay(rigid.position, Vector2.down, Color.green);
+
+        RaycastHit2D rayHit = Physics2D.Raycast(rigid.position, Vector2.down, 1, LayerMask.GetMask("Plat"));
+
+
+        if (rigid.velocity.y < 0)
+        {
+            if (rayHit.collider != null)
+            {
+                if (rayHit.distance < 0.5f)
+                {
+                    anim.SetBool("isJump", false);
+                    isJump = false;
+                }
+            }
+        }
     }
 
     void Update()
     {
         Jump();
+
+        if (Input.GetAxisRaw("Horizontal") < 0)
+            render.flipX = true;
+        else if (Input.GetAxisRaw("Horizontal") > 0)
+            render.flipX = false;
+
+        if (Input.GetButton("Horizontal"))
+            anim.SetBool("isRun", true);
+        else
+            anim.SetBool("isRun", false);
+
+        if(Input.GetButtonUp("Horizontal"))
+            rigid.velocity = new Vector2(rigid.velocity.normalized.x * 0.5f, rigid.velocity.y);
+
+
     }
 
 
@@ -40,22 +72,17 @@ public class Player : MonoBehaviour
     {
         float h = Input.GetAxisRaw("Horizontal");
 
-        rigid.AddForce(Vector2.right * h * speed * Time.deltaTime, ForceMode2D.Impulse);
+        rigid.AddForce(Vector2.right * h , ForceMode2D.Impulse);
 
+        if (rigid.velocity.x > maxSpeed)
+        {
+            rigid.velocity = new Vector2(maxSpeed, rigid.velocity.y);
+        }
+        else if( rigid.velocity.x < maxSpeed * -1)
+        {
+            rigid.velocity = new Vector2(maxSpeed * -1, rigid.velocity.y);
+        }
 
-
-
-        if (Input.GetAxisRaw("Horizontal") < 0)
-            render.flipX = true;
-        else if (Input.GetAxisRaw("Horizontal") > 0)
-            render.flipX = false;
-
-
-        if (Input.GetButton("Horizontal"))
-            anim.SetBool("isRun", true);
-        else
-            anim.SetBool("isRun", false);
-            
 
 
 
@@ -69,21 +96,9 @@ public class Player : MonoBehaviour
             isJump = true;
             anim.SetBool("isJump", true);
         }
-        else
-        {
-            anim.SetBool("isJump", false);
-        }
 
-        RaycastHit2D rayCast;
 
-        rayCast = Physics2D.Raycast(transform.position, Vector2.down * 0.4f, 0.5f, LayerMask.GetMask("Plat"));
-
-        Debug.DrawRay(transform.position, Vector2.down * 1f, Color.green);
-
-        if (rayCast)
-        {
-            isJump = false;
-        }
+        
 
     }
 
